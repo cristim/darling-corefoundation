@@ -206,9 +206,9 @@ enum { kCFNumberSInt128Type = 17 };
     return GET_VALUE(unsigned char, kCFNumberCharType);
 }
 
-- (BOOL)charValue
+- (char)charValue
 {
-    return GET_VALUE(unsigned char, kCFNumberCharType);
+    return GET_VALUE(char, kCFNumberCharType);
 }
 
 - (const char *)objCType
@@ -578,7 +578,7 @@ SINGLETON_RR()
     return (CFBooleanRef)self == kCFBooleanTrue;
 }
 
-- (BOOL)charValue
+- (char)charValue
 {
     return (CFBooleanRef)self == kCFBooleanTrue;
 }
