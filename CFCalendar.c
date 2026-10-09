@@ -449,6 +449,9 @@ static void __CFCalendarSetToFirstInstant(CFCalendarRef calendar, CFCalendarUnit
     }
 }
 
+// Initial add step (as a power of two) per CFCalendarUnit bit position, through YearForWeekOfYear (1 << 14).
+static const int multiple_table[] = {0, 0, 16, 19, 24, 26, 24, 28, 14, 14, 14, 14, 14, 14, 16};
+
 static Boolean __validUnits(CFCalendarUnit smaller, CFCalendarUnit bigger) {
     switch (bigger) {
     case kCFCalendarUnitEra:
@@ -692,7 +695,6 @@ CFIndex CFCalendarGetOrdinalityOfUnit(CFCalendarRef calendar, CFCalendarUnit sma
 	UDate curr = ucal_getMillis(calendar->_cal, &status);
         UDate goal = floor((at + kCFAbsoluteTimeIntervalSince1970) * 1000.0);
 	result = 1;
-	const int multiple_table[] = {0, 0, 16, 19, 24, 26, 24, 28, 14, 14, 14};
 	int multiple = (1 << multiple_table[flsl(smallerUnit) - 1]);
 	Boolean divide = false, alwaysDivide = false;
 	while (curr < goal) {
@@ -826,7 +828,6 @@ Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTim
 	char ch = *componentDesc;
 	while (ch) {
 	    UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
-	    const int multiple_table[] = {0, 0, 16, 19, 24, 26, 24, 28, 14, 14, 14};
 	    int multiple = direction * (1 << multiple_table[flsl(__CFCalendarGetCalendarUnitFromChar(ch)) - 1]);
 	    Boolean divide = false, alwaysDivide = false;
 	    int result = 0;
