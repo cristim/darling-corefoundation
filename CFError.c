@@ -30,6 +30,7 @@
 #include <CoreFoundation/CFError_Private.h>
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
+#include <sys/mman.h> /* darling-lol: mincore for isa validation */
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <mach/mach_error.h>
 #endif
@@ -380,6 +381,19 @@ CFDictionaryRef CFErrorCopyUserInfo(CFErrorRef err) {
 }
 
 CFStringRef CFErrorCopyDescription(CFErrorRef err) {
+#ifdef DARLING
+    /* Fail soft on NULL/unmapped-isa errors: callers (and some Darling
+     * stubs that fail without setting out-errors) can hand us garbage;
+     * the description is logging-only, crashing here helps nothing. */
+    if (!err)
+        return CFSTR("(null error)");
+    {
+        uintptr_t isa = ((CFRuntimeBase *)err)->_cfisa;
+        char vec = 0;
+        if (isa == 0 || mincore((void *)(isa & ~0xFFFUL), 4096, &vec) != 0)
+            return CFSTR("(null error)");
+    }
+#endif
     if (CF_IS_OBJC(CFErrorGetTypeID(), err)) {  // Since we have to return a retained result, we need to treat the toll-free bridging specially
         CFStringRef desc = (CFStringRef) CF_OBJC_CALLV((NSError *)err, localizedDescription);
         return desc ? (CFStringRef)CFRetain(desc) : NULL;    // !!! It really should never return nil.
@@ -389,6 +403,19 @@ CFStringRef CFErrorCopyDescription(CFErrorRef err) {
 }
 
 CFStringRef CFErrorCopyFailureReason(CFErrorRef err) {
+#ifdef DARLING
+    /* Fail soft on NULL/unmapped-isa errors: callers (and some Darling
+     * stubs that fail without setting out-errors) can hand us garbage;
+     * the description is logging-only, crashing here helps nothing. */
+    if (!err)
+        return CFSTR("(null error)");
+    {
+        uintptr_t isa = ((CFRuntimeBase *)err)->_cfisa;
+        char vec = 0;
+        if (isa == 0 || mincore((void *)(isa & ~0xFFFUL), 4096, &vec) != 0)
+            return CFSTR("(null error)");
+    }
+#endif
     if (CF_IS_OBJC(CFErrorGetTypeID(), err)) {  // Since we have to return a retained result, we need to treat the toll-free bridging specially
         CFStringRef str = (CFStringRef) CF_OBJC_CALLV((NSError *)err, localizedFailureReason);
         return str ? (CFStringRef)CFRetain(str) : NULL;    // It's possible for localizedFailureReason to return nil
@@ -398,6 +425,19 @@ CFStringRef CFErrorCopyFailureReason(CFErrorRef err) {
 }
 
 CFStringRef CFErrorCopyRecoverySuggestion(CFErrorRef err) {
+#ifdef DARLING
+    /* Fail soft on NULL/unmapped-isa errors: callers (and some Darling
+     * stubs that fail without setting out-errors) can hand us garbage;
+     * the description is logging-only, crashing here helps nothing. */
+    if (!err)
+        return CFSTR("(null error)");
+    {
+        uintptr_t isa = ((CFRuntimeBase *)err)->_cfisa;
+        char vec = 0;
+        if (isa == 0 || mincore((void *)(isa & ~0xFFFUL), 4096, &vec) != 0)
+            return CFSTR("(null error)");
+    }
+#endif
     if (CF_IS_OBJC(CFErrorGetTypeID(), err)) {  // Since we have to return a retained result, we need to treat the toll-free bridging specially
         CFStringRef str = (CFStringRef) CF_OBJC_CALLV((NSError *)err, localizedRecoverySuggestion);
         return str ? (CFStringRef)CFRetain(str) : NULL;    // It's possible for localizedRecoverySuggestion to return nil
